@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paint the Pucca Wall</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&family=Hind+Siliguri:wght@400;500;600&display=swap">
+<style>
+/* Layout: one working screen. The house is the stage; tools sit beneath it like a painter's tray. Single dark "dusk" look so the mud wall glows. */
+:root {
+  --night: #1c1714;      /* hay-black, page ground */
+  --soot: #2a221d;       /* raised surfaces */
+  --line: #4a3c32;       /* hairlines */
+  --kaolin: #f3ede2;     /* white clay, main text */
+  --ochre: #b2432a;      /* red ochre accent */
+  --ochre-soft: #e7a48c; /* ochre on dark */
+  --mud: #c49a62;        /* earth */
+  --muted: #b3a492;
+  --display: "Tiro Bangla", "Iowan Old Style", Georgia, serif;
+  --body: "Hind Siliguri", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--night); color: var(--kaolin);
+  font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1100px; margin: 0 auto; padding-block: 20px 28px; display: grid; gap: 16px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 5vw, 44px); line-height: 1.05; margin: 0; text-wrap: balance; }
+h1 .bn { color: var(--ochre-soft); font-size: .8em; margin-left: .25em; }
+.tag { margin: 4px 0 0; color: var(--muted); max-width: 60ch; }
+.credit { color: var(--muted); font-size: 13px; text-align: right; }
+.credit b { color: var(--kaolin); font-weight: 600; }
+
+.stage { position: relative; border-radius: 10px; overflow: hidden; background: #2b2420; }
+canvas#wall { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; }
+.hint { position: absolute; left: 12px; top: 10px; font-size: 13px; color: var(--kaolin); background: rgba(28,23,20,.72); padding: 4px 10px; border-radius: 99px; pointer-events: none; transition: opacity .4s; }
+
+.tray { display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; }
+@media (max-width: 760px) { .tray { grid-template-columns: 1fr; } }
+.panel { background: var(--soot); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 12px; min-width: 0; align-content: start; }
+.label .count { text-transform: none; letter-spacing: 0; margin-left: 6px; }
+.label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ochre-soft); font-weight: 600; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.swatch { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--kaolin); font: inherit; font-size: 14px; cursor: pointer; }
+.swatch i { width: 22px; height: 22px; border-radius: 50%; display: block; border: 1px solid rgba(255,255,255,.25); }
+.swatch[aria-pressed="true"], .tool[aria-pressed="true"] { border-color: var(--kaolin); background: #3a2f28; }
+.tool { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--kaolin); font: inherit; font-size: 14px; cursor: pointer; }
+.tool small { display: block; color: var(--muted); font-size: 11px; line-height: 1.2; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--ochre-soft); outline-offset: 2px; }
+input[type=range] { accent-color: var(--ochre); width: 140px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { font: inherit; font-weight: 600; font-size: 15px; padding: 10px 16px; border-radius: 8px; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--kaolin); }
+.btn.primary { background: var(--ochre); border-color: var(--ochre); color: #fff; }
+.btn:disabled { opacity: .5; cursor: default; }
+
+.machine { min-height: 132px; }
+.guess { font-family: var(--display); font-size: 22px; line-height: 1.2; }
+.conf { font-variant-numeric: tabular-nums; color: var(--ochre-soft); font-size: 14px; font-weight: 600; }
+.explain { color: var(--kaolin); margin: 0; }
+.caveat { color: var(--muted); font-size: 12.5px; margin: 0; border-top: 1px solid var(--line); padding-top: 8px; }
+
+.archive { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; min-height: 64px; align-items: center; }
+.archive img { height: 60px; width: auto; border-radius: 4px; border: 1px solid var(--line); flex: none; }
+.archive .empty { color: var(--muted); font-size: 13px; }
+.count { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { .hint { transition: none; } }
+</style>
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Paint the wall <span class="bn">পাকা</span></h1>
+      <p class="tag">This is a mud house in the style of Santal homes in northern Bangladesh. Paint it with the three earth colors. Then call the monsoon and watch it wash away, the way these walls do every year.</p>
+    </div>
+    <div class="credit">A study for <b>Pucca: What Concrete Erases</b><br>Sababa Ahmed · Ammerman Center for Arts &amp; Technology</div>
+  </header>
+
+  <div class="stage">
+    <canvas id="wall" width="1200" height="760" aria-label="A mud house wall you can paint on"></canvas>
+    <div class="hint" id="hint">Drag on the wall to paint</div>
+  </div>
+
+  <div class="tray">
+    <div class="panel">
+      <div class="label">Earth colors</div>
+      <div class="row" id="colors">
+        <button class="swatch" id="c-white" data-color="#f4efe4" aria-pressed="true"><i style="background:#f4efe4"></i>Kaolin white</button>
+        <button class="swatch" id="c-ochre" data-color="#a8371f" aria-pressed="false"><i style="background:#a8371f"></i>Red ochre</button>
+        <button class="swatch" id="c-black" data-color="#231c18" aria-pressed="false"><i style="background:#231c18"></i>Hay-black</button>
+      </div>
+      <div class="label">Paint with</div>
+      <div class="row" id="tools">
+        <button class="tool" id="t-cloth" data-tool="cloth" aria-pressed="true">Cloth<small>soft, wide</small></button>
+        <button class="tool" id="t-finger" data-tool="finger" aria-pressed="false">Fingertip<small>dots</small></button>
+        <button class="tool" id="t-twig" data-tool="twig" aria-pressed="false">Twig<small>fine lines</small></button>
+        <label class="row" for="size" style="gap:6px;color:var(--muted);font-size:13px">Size <input type="range" id="size" min="4" max="40" value="16"></label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="monsoon">Call the monsoon</button>
+        <button class="btn" id="ask">Ask the machine</button>
+        <button class="btn" id="sound" aria-pressed="false">Sound: off</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="label">The machine’s guess</div>
+      <div class="machine" id="machine" aria-live="polite">
+        <div class="guess" id="guess">Paint something, then ask.</div>
+        <div class="conf" id="conf"></div>
+        <p class="explain" id="explain">It will name your motif and explain what it means. It always sounds sure.</p>
+      </div>
+      <p class="caveat">This machine is simulated. It has never seen a Santal wall. In the finished installation, a Santal artist’s own explanation appears right beside it.</p>
+      <div class="label">Washed away <span class="count" id="count">0 walls</span></div>
+      <div class="archive" id="archive"><span class="empty">Each wall the monsoon takes is kept here, and only here.</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const W = 1200, H = 760;
+  const cv = document.getElementById('wall');
+  const ctx = cv.getContext('2d');
+  // ---------- seeded random ----------
+  let seed = 7;
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+  // ---------- geometry ----------
+  const WALL = { x: 90, y: 330, w: 1020, h: 330 };
+  const DOORS = [{ x: 290, y: 430, w: 92, h: 230 }, { x: 818, y: 430, w: 92, h: 230 }];
+  const WIN = { x: 560, y: 440, w: 80, h: 70 };
+  function wallClip(c) {
+    c.beginPath();
+    c.rect(WALL.x, WALL.y, WALL.w, WALL.h + 40);
+    for (const d of [...DOORS, WIN]) c.rect(d.x, d.y, d.w, d.h);
+    c.clip('evenodd');
+  }
+
+  // ---------- base scene (drawn once) ----------
+  const base = document.createElement('canvas'); base.width = W; base.height = H;
+  (function drawBase() {
+    const b = base.getContext('2d');
+    // dusk sky
+    const g = b.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#3b2c25'); g.addColorStop(.55, '#6b4a36'); g.addColorStop(1, '#4a3628');
+    b.fillStyle = g; b.fillRect(0, 0, W, H);
+    // courtyard ground
+    b.fillStyle = '#8a6a48'; b.fillRect(0, 690, W, 70);
+    for (let i = 0; i < 900; i++) { b.fillStyle = `rgba(40,25,15,${rnd()*.25})`; b.fillRect(rnd()*W, 690 + rnd()*70, 2, 1); }
+    // mud wall body
+    b.fillStyle = '#c79d65'; b.fillRect(WALL.x, WALL.y, WALL.w, WALL.h);
+    for (let i = 0; i < 5000; i++) {
+      const x = WALL.x + rnd()*WALL.w, y = WALL.y + rnd()*WALL.h;
+      b.fillStyle = rnd() < .5 ? `rgba(90,60,30,${rnd()*.18})` : `rgba(255,235,200,${rnd()*.12})`;
+      b.fillRect(x, y, 1 + rnd()*3, 1 + rnd()*2);
+    }
+    // hairline cracks
+    b.strokeStyle = 'rgba(80,52,28,.35)'; b.lineWidth = 1;
+    for (let k = 0; k < 9; k++) {
+      let x = WALL.x + rnd()*WALL.w, y = WALL.y + 40 + rnd()*(WALL.h-80);
+      b.beginPath(); b.moveTo(x, y);
+      for (let s = 0; s < 6; s++) { x += (rnd()-.5)*24; y += 6 + rnd()*10; b.lineTo(x, y); }
+      b.stroke();
+    }
+    // red ochre frieze and dado bands (part of the wall, paintable over)
+    b.fillStyle = '#a63a22'; b.fillRect(WALL.x, WALL.y, WALL.w, 38); b.fillRect(WALL.x, 600, WALL.w, 60);
+    // raised plinth
+    b.fillStyle = '#9c3520'; b.fillRect(WALL.x - 25, 660, WALL.w + 50, 32);
+    b.fillStyle = 'rgba(0,0,0,.25)'; b.fillRect(WALL.x - 25, 688, WALL.w + 50, 4);
+    // doors
+    for (const d of DOORS) {
+      b.fillStyle = '#2b1e17'; b.fillRect(d.x, d.y, d.w, d.h);
+      b.fillStyle = '#3d2a1f'; b.fillRect(d.x + 8, d.y + 8, d.w/2 - 12, d.h - 16); b.fillRect(d.x + d.w/2 + 4, d.y + 8, d.w/2 - 12, d.h - 16);
+      b.fillStyle = '#a63a22'; b.fillRect(d.x - 6, d.y - 6, d.w + 12, 6);
+    }
+    // window with bars
+    b.fillStyle = '#1e1612'; b.fillRect(WIN.x, WIN.y, WIN.w, WIN.h);
+    b.fillStyle = '#5c7a52'; for (let i = 1; i < 5; i++) b.fillRect(WIN.x + i*WIN.w/5 - 2, WIN.y, 4, WIN.h);
+    b.fillStyle = '#a63a22'; b.fillRect(WIN.x - 6, WIN.y - 6, WIN.w + 12, 6); b.fillRect(WIN.x - 6, WIN.y + WIN.h, WIN.w + 12, 6);
+    // veranda posts
+    b.fillStyle = '#3a2a20'; for (const x of [70, 1122]) b.fillRect(x, 318, 10, 344);
+    // tin and thatch roof: patchwork of corrugated sheets
+    const roof = [[30, 335], [170, 150], [1030, 150], [1170, 335]];
+    b.save(); b.beginPath(); b.moveTo(...roof[0]); for (const p of roof.slice(1)) b.lineTo(...p); b.closePath(); b.clip();
+    const tones = ['#8d8a86', '#a39d95', '#7b5a44', '#9b6a46', '#6e7782', '#b0a796', '#85664f'];
+    for (let y = 150; y < 340; y += 38) for (let x = 20; x < 1180; x += 60 + rnd()*40) {
+      const w = 70 + rnd()*60;
+      b.fillStyle = tones[Math.floor(rnd()*tones.length)]; b.fillRect(x, y, w, 40);
+      b.strokeStyle = 'rgba(30,25,20,.35)'; b.lineWidth = 1;
+      for (let r = x + 4; r < x + w; r += 6) { b.beginPath(); b.moveTo(r, y); b.lineTo(r, y + 40); b.stroke(); }
+      if (rnd() < .4) { b.fillStyle = `rgba(150,70,30,${.2 + rnd()*.3})`; b.fillRect(x + rnd()*w*.6, y + rnd()*20, 20 + rnd()*30, 10 + rnd()*14); }
+    }
+    b.restore();
+    b.strokeStyle = '#2a201a'; b.lineWidth = 3;
+    b.beginPath(); b.moveTo(...roof[0]); for (const p of roof.slice(1)) b.lineTo(...p); b.closePath(); b.stroke();
+    // eave shadow on wall
+    const sh = b.createLinearGradient(0, 335, 0, 380); sh.addColorStop(0, 'rgba(0,0,0,.45)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+    b.fillStyle = sh; b.fillRect(WALL.x, 335, WALL.w, 45);
+    // a crow on the ridge
+    b.fillStyle = '#1a1411'; b.beginPath(); b.ellipse(880, 140, 14, 8, 0, 0, Math.PI*2); b.fill();
+    b.beginPath(); b.arc(895, 133, 6, 0, Math.PI*2); b.fill();
+    b.beginPath(); b.moveTo(900, 133); b.lineTo(910, 135); b.lineTo(900, 137); b.fill();
+  })();
+
+  // ---------- paint layer ----------
+  const paint = document.createElement('canvas'); paint.width = W; paint.height = H;
+  const pc = paint.getContext('2d');
+  let color = '#f4efe4', tool = 'cloth', size = 16;
+
+  function dab(x, y, r, col, alpha) {
+    pc.save(); wallClip(pc);
+    pc.globalAlpha = alpha; pc.fillStyle = col;
+    pc.beginPath(); pc.arc(x, y, r, 0, Math.PI*2); pc.fill();
+    pc.restore();
+  }
+  function cloth(x, y, s) {
+    for (let i = 0; i < 9; i++) {
+      const a = Math.random()*Math.PI*2, d = Math.random()*s*.6;
+      dab(x + Math.cos(a)*d, y + Math.sin(a)*d, s*(.25 + Math.random()*.35), color, .22 + Math.random()*.2);
+    }
+  }
+  function twigLine(x0, y0, x1, y1, s) {
+    pc.save(); wallClip(pc);
+    pc.strokeStyle = color; pc.lineCap = 'round'; pc.globalAlpha = .9;
+    pc.lineWidth = Math.max(2, s*.22) * (.8 + Math.random()*.4);
+    pc.beginPath(); pc.moveTo(x0, y0); pc.lineTo(x1, y1); pc.stroke(); pc.restore();
+  }
+
+  // Starting state: a vine already begun along the frieze, and one flower
+  (function sample() {
+    const keep = color; color = '#f4efe4';
+    let px = WALL.x + 20, py = WALL.y + 19;
+    for (let x = WALL.x + 20; x < WALL.x + 520; x += 4) {
+      const y = WALL.y + 19 + Math.sin((x - WALL.x)/22)*8;
+      twigLine(px, py, x, y, 14); px = x; py = y;
+      if ((x - WALL.x) % 88 < 4) for (let k = 0; k < 3; k++) dab(x, y - 6 - k*0, 3.5, color, .95);
+    }
+    const cx = 190, cy = 500;
+    for (let i = 0; i < 8; i++) {
+      const a = i*Math.PI/4, ex = cx + Math.cos(a)*42, ey = cy + Math.sin(a)*42;
+      twigLine(cx + Math.cos(a)*12, cy + Math.sin(a)*12, ex, ey, 30);
+      dab(ex, ey, 6, color, .95);
+    }
+    dab(cx, cy, 10, color, .95);
+    twigLine(cx, cy + 48, cx, 598, 26);
+    for (const s of [-1, 1]) twigLine(cx, 560, cx + s*26, 540, 22);
+    color = keep;
+  })();
+
+  // ---------- input ----------
+  let down = false, last = null, lastT = 0, painted = false;
+  const hint = document.getElementById('hint');
+  function pos(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; }
+  cv.addEventListener('pointerdown', e => {
+    if (washing) return;
+    down = true; cv.setPointerCapture(e.pointerId); last = pos(e); lastT = performance.now();
+    stroke(last, last); audioStart();
+    if (!painted) { painted = true; hint.style.opacity = 0; }
+  });
+  cv.addEventListener('pointermove', e => {
+    if (!down) return;
+    const p = pos(e), now = performance.now();
+    const speed = Math.hypot(p[0] - last[0], p[1] - last[1]) / Math.max(1, now - lastT);
+    stroke(last, p); swishLevel(speed); last = p; lastT = now;
+  });
+  const end = () => { down = false; last = null; swishLevel(0); };
+  cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+
+  let fingerAcc = 0;
+  function stroke(a, b) {
+    const dist = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (tool === 'twig') { twigLine(a[0], a[1], b[0], b[1], size); return; }
+    if (tool === 'finger') {
+      fingerAcc += dist;
+      if (fingerAcc >= size * 1.6 || dist === 0) { fingerAcc = 0; dab(b[0], b[1], size * .35, color, .95); }
+      return;
+    }
+    const steps = Math.max(1, Math.ceil(dist / (size * .4)));
+    for (let i = 0; i <= steps; i++) cloth(a[0] + (b[0] - a[0]) * i / steps, a[1] + (b[1] - a[1]) * i / steps, size);
+  }
+
+  // ---------- controls ----------
+  function group(id, attr, set) {
+    const btns = document.querySelectorAll(`#${id} button`);
+    btns.forEach(btn => btn.addEventListener('click', () => {
+      btns.forEach(o => o.setAttribute('aria-pressed', String(o === btn)));
+      set(btn.dataset[attr]);
+    }));
+  }
+  group('colors', 'color', v => color = v);
+  group('tools', 'tool', v => tool = v);
+  document.getElementById('size').addEventListener('input', e => size = +e.target.value);
+
+  // ---------- sound (synthesized: cloth on plaster, rain) ----------
+  let ac = null, soundOn = false, swishGain, rainGain, noiseBuf;
+  const soundBtn = document.getElementById('sound');
+  function audioStart() {
+    if (!soundOn || ac) return;
+    try {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      noiseBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
+      const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random()*2 - 1;
+      const mk = (type, freq, q) => { const src = ac.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+        const f = ac.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+        const g = ac.createGain(); g.gain.value = 0; src.connect(f).connect(g).connect(ac.destination); src.start(); return g; };
+      swishGain = mk('bandpass', 1400, .8);
+      rainGain = mk('lowpass', 2400, .3);
+    } catch (e) { ac = null; }
+  }
+  function swishLevel(speed) {
+    if (!ac || !swishGain) return;
+    const v = tool === 'finger' ? 0 : Math.min(.35, speed * .25);
+    swishGain.gain.setTargetAtTime(v, ac.currentTime, .05);
+  }
+  function rainLevel(v) { if (ac && rainGain) rainGain.gain.setTargetAtTime(v, ac.currentTime, .4); }
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    soundBtn.textContent = 'Sound: ' + (soundOn ? 'on' : 'off');
+    soundBtn.setAttribute('aria-pressed', String(soundOn));
+    if (soundOn) { audioStart(); if (ac && ac.state === 'suspended') ac.resume(); }
+    else if (ac) { swishLevel(0); rainLevel(0); }
+  });
+
+  // ---------- monsoon ----------
+  let washing = false, washT = 0, drops = [], washed = 0;
+  const monsoonBtn = document.getElementById('monsoon');
+  const archive = document.getElementById('archive');
+  function snapshot() {
+    const t = document.createElement('canvas'); t.width = 300; t.height = 190;
+    t.getContext('2d').drawImage(cv, 0, 0, 300, 190);
+    return t.toDataURL('image/jpeg', .8);
+  }
+  monsoonBtn.addEventListener('click', () => {
+    if (washing) return;
+    const img = new Image(); img.src = snapshot(); img.alt = 'A wall that was washed away';
+    const empty = archive.querySelector('.empty'); if (empty) empty.remove();
+    archive.prepend(img);
+    while (archive.children.length > 12) archive.lastChild.remove();
+    washed++; document.getElementById('count').textContent = washed + (washed === 1 ? ' wall' : ' walls');
+    washing = true; washT = 0; monsoonBtn.disabled = true;
+    drops = Array.from({ length: 260 }, () => ({ x: Math.random()*W, y: Math.random()*H, v: 14 + Math.random()*10 }));
+    if (soundOn) { audioStart(); rainLevel(.5); }
+  });
+
+  // ---------- the machine (simulated) ----------
+  const GUESSES = [
+    ['Tree of life', 'This motif symbolizes growth, family lineage and the connection between earth and sky.'],
+    ['Sun wheel', 'The radiating form represents the sun’s protection over the household and its harvest.'],
+    ['Rice-stalk border', 'A border like this traditionally invokes abundance and a good harvest season.'],
+    ['Peacock in flight', 'The peacock is a sign of beauty and of the arrival of the rains.'],
+    ['River band', 'Flowing lines like these represent water, fertility and the passage of time.'],
+    ['Elephant procession', 'Elephants express strength, prosperity and blessing for those inside the home.'],
+    ['Lotus medallion', 'The lotus stands for purity and renewal, rising clean from the mud.'],
+  ];
+  document.getElementById('ask').addEventListener('click', () => {
+    const data = pc.getImageData(WALL.x, WALL.y, WALL.w, WALL.h).data;
+    let h = 0, n = 0;
+    for (let i = 3; i < data.length; i += 4 * 97) if (data[i] > 20) { n++; h = (h * 31 + data[i - 3] + i) >>> 0; }
+    const g = document.getElementById('guess'), c = document.getElementById('conf'), ex = document.getElementById('explain');
+    if (n < 15) { g.textContent = 'Nothing to read yet.'; c.textContent = ''; ex.textContent = 'Paint a motif on the wall and ask again.'; return; }
+    const [name, why] = GUESSES[h % GUESSES.length];
+    g.textContent = name;
+    c.textContent = (86 + (h % 13)) + '% confident';
+    ex.textContent = '';
+    let i = 0; const full = why;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { ex.textContent = full; return; }
+    const tick = () => { ex.textContent = full.slice(0, ++i); if (i < full.length) setTimeout(tick, 18); };
+    tick();
+  });
+
+  // ---------- render loop ----------
+  function frame() {
+    ctx.drawImage(base, 0, 0);
+    if (washing) {
+      washT++;
+      // paint runs downward and fades as the rain hits it
+      pc.save(); pc.globalCompositeOperation = 'copy'; pc.globalAlpha = .965;
+      pc.drawImage(paint, 0, 1.2); pc.restore();
+      if (washT > 170) { pc.clearRect(0, 0, W, H); }
+    }
+    ctx.drawImage(paint, 0, 0);
+    if (washing) {
+      const a = Math.min(1, washT / 20) * Math.min(1, (200 - washT) / 30);
+      ctx.fillStyle = `rgba(40,45,55,${.35 * a})`; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = `rgba(220,230,240,${.55 * a})`; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (const d of drops) { ctx.moveTo(d.x, d.y); ctx.lineTo(d.x - 3, d.y + 18); d.y += d.v; d.x -= .8; if (d.y > H) { d.y = -20; d.x = Math.random()*W; } }
+      ctx.stroke();
+      if (washT >= 200) { washing = false; monsoonBtn.disabled = false; rainLevel(0); hint.textContent = 'The wall is fresh. Paint it again'; hint.style.opacity = 1; painted = false; }
+    }
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+</script>
+
+</body>
+</html>
