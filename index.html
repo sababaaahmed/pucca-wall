@@ -73,6 +73,20 @@ input[type=range] { accent-color: var(--ochre); width: 140px; }
 .archive .empty { color: var(--muted); font-size: 13px; }
 .count { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
 @media (prefers-reduced-motion: reduce) { .hint { transition: none; } }
+.jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.jump a { color: var(--kaolin); text-decoration: none; font-size: 14px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 99px; }
+.jump a:hover, .jump a:focus-visible { border-color: var(--ochre-soft); color: var(--ochre-soft); }
+.story { border-top: 1px solid var(--line); padding-top: 24px; margin-top: 8px; display: grid; gap: 10px; scroll-margin-top: 16px; }
+.story h2 { font-family: var(--display); font-weight: 400; font-size: clamp(24px, 4vw, 32px); line-height: 1.15; margin: 0; text-wrap: balance; }
+.story h3 { font-family: var(--display); font-weight: 400; font-size: 21px; margin: 0 0 4px; color: var(--ochre-soft); }
+.story p { margin: 0; max-width: 66ch; color: var(--kaolin); }
+.story .lead { font-family: var(--display); font-style: italic; font-size: 20px; color: var(--ochre-soft); }
+.story b { font-weight: 600; }
+.cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 4px; }
+@media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+.col { background: var(--soot); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.col p { font-size: 14.5px; }
+.note2, .thanks { color: var(--muted) !important; font-size: 14px; }
 </style>
 <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}</style>
 </head>
@@ -83,7 +97,7 @@ input[type=range] { accent-color: var(--ochre); width: 140px; }
   <header>
     <div>
       <h1>Paint the wall <span class="bn">পাকা</span></h1>
-      <p class="tag">This is a mud house in the style of Santal homes in northern Bangladesh. Paint it with the three earth colors. Then call the monsoon and watch it wash away, the way these walls do every year.</p>
+      <p class="tag">This is a mud house in the style of Santal homes in northern Bangladesh. Paint it with the three earth colors. Then call the monsoon and watch it wash away, the way these walls do every year. Scroll down to learn about the project.</p>
     </div>
     <div class="credit">A study for <b>Pucca: What Concrete Erases</b><br>Sababa Ahmed · Ammerman Center for Arts &amp; Technology</div>
   </header>
@@ -127,6 +141,61 @@ input[type=range] { accent-color: var(--ochre); width: 140px; }
       <div class="archive" id="archive"><span class="empty">Each wall the monsoon takes is kept here, and only here.</span></div>
     </div>
   </div>
+  <nav class="jump" aria-label="On this page">
+    <a href="#about">About Pucca</a><a href="#tradition">The tradition</a><a href="#start">How it started</a><a href="#install">The installation</a><a href="#me">Who I am</a>
+  </nav>
+
+  <section class="story" id="about">
+    <div class="label">About this project</div>
+    <h2>Pucca: What Concrete Erases</h2>
+    <p class="lead">You just painted a wall that was always going to wash away. That is the point.</p>
+    <p>This page is a small study for <b>Pucca</b>, my Senior Integrative Project at the Ammerman Center for Arts &amp; Technology at Connecticut College. <i>Pucca</i> (পাকা) is the Bangla word for solid and permanent. People use it for a brick house. A mud house is <i>kutcha</i>.</p>
+    <p>The project asks one question: <b>how can a living tradition be preserved without freezing it?</b></p>
+  </section>
+
+  <section class="story" id="tradition">
+    <div class="label">The tradition</div>
+    <h2>Walls painted for the harvest</h2>
+    <p>In northern Bangladesh, Santal women paint the mud walls of their homes with clay pigments they grind by hand. They use their fingers and cloth, not brushes. The walls fill with bands of red ochre and black, and white kaolin flowers, vines and birds. Daughters learn it from their mothers by painting beside them.</p>
+    <p>Each year, before <b>Sohrai</b>, the harvest festival, homes are freshly plastered and painted, and the whole village becomes a celebration. Then the monsoon rains wash the paintings away, and they are made again. The washing away is part of the tradition.</p>
+    <p>Today, families are rebuilding with brick and tin. Nobody is banning the painting. It is disappearing because the surface it needs, the mud wall, is disappearing.</p>
+  </section>
+
+  <section class="story" id="start">
+    <div class="label">How it started</div>
+    <h2>It started at home</h2>
+    <p>I grew up around Santal families. To me they were never a community I studied. They were Auntie and Uncle. I watched the aunties paint their walls, and as a child I thought every house in the world looked like that.</p>
+    <p>When I came to the United States, I kept seeing South Asian crafts sold under other names. A dupatta becomes a "Scandinavian scarf." Bungalow, paisley and bandana are everyday words here, but few people know they come from Bengal, Kashmir and Gujarat. The words survived. The makers' names did not.</p>
+    <p>At the same time, the walls I grew up with were turning into brick. Pucca comes from both of those feelings.</p>
+  </section>
+
+  <section class="story" id="install">
+    <div class="label">The installation</div>
+    <h2>A wall, a machine, and a monsoon</h2>
+    <div class="cols">
+      <div class="col">
+        <h3>The wall</h3>
+        <p>A real wall plastered by hand with mud. You paint it wearing a cloth-wrapped glove with sensors, read by an Arduino, a tiny computer the size of a credit card. Paint appears under your fingers in three earth colors, with the sounds of the work: pigment being ground, water in a clay pot.</p>
+      </div>
+      <div class="col">
+        <h3>The machine</h3>
+        <p>Beside the wall, a screen watches you paint. It names your motif, finishes your stroke a little too perfectly, and explains what it means with total confidence. Right next to it, a Santal woman explains the same motif in her own voice. You decide who to trust.</p>
+      </div>
+      <div class="col">
+        <h3>The monsoon</h3>
+        <p>Every so often, it rains. The wall washes clean and the next person starts fresh. Each painting is saved in an archive, but never shown on the wall again, just like the real walls.</p>
+      </div>
+    </div>
+    <p class="note2">This web page is a sketch of that idea. The full installation opens at the Ammerman Center exhibition in April 2027.</p>
+  </section>
+
+  <section class="story" id="me">
+    <div class="label">Who I am</div>
+    <h2>Hi, I'm Sababa</h2>
+    <p>I'm Sababa Ahmed, a member of the Class of 2027 at Connecticut College, from Pabna, Bangladesh. I'm a Computer Science and Global Islamic Studies double major with an art minor, and a student in the Ammerman Center for Arts &amp; Technology. I want to become a design engineer who brings South Asian craft traditions into the technology we use every day.</p>
+    <p class="thanks">With gratitude to Lakshmi Auntie and Lubin Mama, who let me grow up beside them; to Professor James Lee and Professor Sufia Uddin; and to everyone at Conn who made room for my roots.</p>
+  </section>
+
 </div>
 
 <script>
